@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from copy import deepcopy
 
+
 type Constant = str
 type Variable = str
 
@@ -18,15 +19,18 @@ class Predicate:
         return hash(self.__str__())
     
 class UnboundPredicate:
-    def __init__(self, _type: str, *args: list[Variable]) -> None:
+    def __init__(self, _type: str, *args: Variable) -> None:
         self.type = _type
-        self.variables = args
+        self.variables = list(args)
 
     def __call__(self, *args: list[Constant]) -> Predicate:
         if len(*args) != len(self.variables):
             raise AssertionError("Invalid number of arguments passed to predicate.")
         return Predicate(self.type, *args)
         
+
+    def __str__(self) -> str:
+        return f"{self.type}({",".join([str(x) for x in self.variables])})"
     
 @dataclass
 class Action:
@@ -39,7 +43,7 @@ class Action:
 class GroundedAction:
     def __init__(self, action: Action) -> None:
         self.action = action
-        self.bindings: dict[str, str]
+        self.bindings: dict[str, str] = {}
 
     def is_valid(self) -> bool:
         return len(self.bindings) ==len(self.action.params)
@@ -50,7 +54,7 @@ class GroundedAction:
 
         ret: list[Predicate] = []
         for pred in to_modify:
-            new_pred = Predicate(pred.type, *pred.variables)
+            new_pred = Predicate(pred.type, pred.variables)
             for i, var in enumerate(new_pred.variables):
                 new_pred.variables[i] = self.bindings[var]
             ret.append(new_pred)
@@ -62,7 +66,7 @@ class GroundedAction:
         to an unset predicate (all literals are variables). 
         It will then check if there is a conflict between these assignments and previous assignments."""
         g = GroundedAction(action=self.action)
-        new_bindings = deepcopy(self.bindings)
+        new_bindings: dict[str, str] = deepcopy(self.bindings)
 
         for truth_var, matching_var in zip(truth_predicate.variables, matching_predicate.variables):
             # Binding does not work, already bound to something.
@@ -72,10 +76,14 @@ class GroundedAction:
                 new_bindings[str(matching_var)] = truth_var
         g.bindings = new_bindings
         return g
-
-
-
             
+    def __str__(self) -> str:
+        params=", ".join([f"{x}={y}" for x, y in self.bindings.items()])
+        return f"name({params})"
+    
+    def __repr__(self) -> str:
+        return self.__str__()
+
 class State:
     def __init__(self, predicates: set[Predicate]) -> None:
         self.predicates = predicates
@@ -109,7 +117,7 @@ class STRIPSPlanner:
     
     def __get_applicable_actions_submethod(self, ret: list[GroundedAction], binding: GroundedAction, pos_preconditions: set[UnboundPredicate]):
         # Now, all preconditions have been picked.
-        if not binding.action.pos_effects:
+        if not pos_preconditions:
             bound_neg_preconditions = binding.export_bindings(binding.action.neg_preconditions)
             for neg_precond in bound_neg_preconditions:
                 if self.state.contains(neg_precond):
