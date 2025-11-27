@@ -133,9 +133,3 @@ class STRIPSPlanner:
                 # Compare predicate matching
                 if new_binding := binding.add_binding(sp, pp):
                     self.__get_applicable_actions_submethod(ret, new_binding, deepcopy(pos_preconditions))
-                else:
-                    break
-
-        
-
-
