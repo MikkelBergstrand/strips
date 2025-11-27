@@ -24,10 +24,11 @@ def strips_planner():
     problem = PlannerProblem(
             init=State(initial_state),
             actions=[move],
-            goal=State(set([Predicate("at", ["r1", "loc1"])])),
+            goal=State(set([Predicate("at", ["r1", "loc3"])])),
     )
     planner = STRIPSPlanner(planner_problem=problem)
-    print(planner.get_applicable_actions())
+    print(problem.init)
+    print(planner.fwdSearch())
 
 
 if __name__ == "__main__":
