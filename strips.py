@@ -1,12 +1,11 @@
 from dataclasses import dataclass
 from copy import deepcopy
-from typing import Iterable, Self
+from typing import Iterable
 import heapq
 from itertools import count
 
 type Constant = str
 type Variable = str
-
 
 
 class Predicate:
