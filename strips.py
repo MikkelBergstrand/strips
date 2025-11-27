@@ -1,11 +1,8 @@
 from dataclasses import dataclass
 from copy import deepcopy
 
-
 type Constant = str
 type Variable = str
-
-
 
 class Predicate:
     def __init__(self, _type: str, variables: list[Variable]) -> None:
@@ -46,7 +43,7 @@ class GroundedAction:
         self.bindings: dict[str, str] = {}
 
     def is_valid(self) -> bool:
-        return len(self.bindings) ==len(self.action.params)
+        return len(self.bindings) == len(self.action.params)
 
     def export_bindings(self, to_modify: list[UnboundPredicate]) -> list[Predicate]:
         if not self.is_valid():
@@ -54,7 +51,7 @@ class GroundedAction:
 
         ret: list[Predicate] = []
         for pred in to_modify:
-            new_pred = Predicate(pred.type, pred.variables)
+            new_pred = Predicate(pred.type, deepcopy(pred.variables))
             for i, var in enumerate(new_pred.variables):
                 new_pred.variables[i] = self.bindings[var]
             ret.append(new_pred)
@@ -64,7 +61,8 @@ class GroundedAction:
     def add_binding(self, truth_predicate: Predicate, matching_predicate: UnboundPredicate) -> 'GroundedAction|None':
         """Attempt to bind a predicate that is true (all literals have constant assignments) 
         to an unset predicate (all literals are variables). 
-        It will then check if there is a conflict between these assignments and previous assignments."""
+        It will then check if there is a conflict between these assignments and previous assignments.
+        It will return None if there is a conflict, or a new binding if it is OK."""
         g = GroundedAction(action=self.action)
         new_bindings: dict[str, str] = deepcopy(self.bindings)
 
